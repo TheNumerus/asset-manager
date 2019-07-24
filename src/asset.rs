@@ -2,7 +2,7 @@ use std::fmt;
 
 use crate::texture::TextureData;
 
-#[derive(Hash, Debug, Eq, PartialEq, Clone, Copy)]
+#[derive(Hash, Debug, Eq, PartialEq, Clone)]
 pub enum Asset {
     Blender,
     Texture(TextureData),
@@ -13,6 +13,7 @@ pub enum Asset {
     SubstanceDesigner,
     HandPlaneSettings,
     Autosaved,
+    ReferenceImage,
     Other
 }
 
@@ -32,6 +33,7 @@ impl fmt::Display for Asset {
             Asset::SubstanceDesigner => f.pad("Substance Designer"),
             Asset::HandPlaneSettings => f.pad("HandPlane Settings"),
             Asset::Autosaved => f.pad("Autosaved file"),
+            Asset::ReferenceImage => f.pad("Reference Image"),
             Asset::Other => f.pad("Other"),
         }
     }
