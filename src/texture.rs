@@ -29,9 +29,10 @@ const TEX_TYPE_NAMES: &'static [(&'static str, TextureType)] = &[
 
 #[derive(Hash, Debug, Eq, PartialEq, Clone, Default)]
 pub struct TextureData {
-    tex_type: TextureType,
-    name: String,
-    extension: String
+    pub tex_type: TextureType,
+    pub name: String,
+    pub extension: String,
+    pub full_path: PathBuf
 }
 
 impl TextureData {
@@ -40,7 +41,7 @@ impl TextureData {
 
         let filename = path.file_stem().unwrap().to_str().unwrap().to_ascii_lowercase();
         if filename.contains("bake") {
-            tex_type = TextureType::Bake(TextureData::get_bake_type(path));
+            tex_type = TextureType::Bake(TextureData::get_bake_type(&filename));
         } else {
             for (key, val) in TEX_TYPE_NAMES {
                 if filename.ends_with(key) {
@@ -51,12 +52,10 @@ impl TextureData {
 
         let name = TextureData::get_name(path);
         let extension = path.extension().unwrap().to_str().unwrap().to_owned();
-        TextureData{tex_type, name, extension}
+        TextureData{tex_type, name, extension, full_path: path.to_owned()}
     }
 
-    fn get_bake_type(path: &PathBuf) -> BakeType {
-        let filename = path.file_stem().unwrap().to_str().unwrap().to_ascii_lowercase();
-
+    fn get_bake_type(filename: &String) -> BakeType {
         for (key, val) in BAKE_NAMES {
             if filename.ends_with(key) {
                 return *val;
@@ -106,7 +105,7 @@ impl TextureData {
 }
 
 #[derive(Hash, Debug, Eq, PartialEq, Clone, Copy)]
-enum TextureType {
+pub enum TextureType {
     BaseColor,
     Masks,
     Roughness,
@@ -141,7 +140,7 @@ impl fmt::Display for TextureType {
 }
 
 #[derive(Hash, Debug, Eq, PartialEq, Clone, Copy)]
-enum BakeType {
+pub enum BakeType {
     Normal,
     Ao,
     VertexColor,

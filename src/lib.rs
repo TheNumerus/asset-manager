@@ -3,9 +3,11 @@ use std::path::PathBuf;
 pub mod asset;
 pub mod texture;
 pub mod stats;
+pub mod blender;
 
 pub use asset::Asset;
 pub use texture::TextureData;
+pub use blender::BlenderData;
 pub use stats::Stats;
 
 pub fn format_size(size: u64) -> String {
@@ -22,14 +24,15 @@ pub fn format_size(size: u64) -> String {
 pub fn get_filetype(path: &PathBuf) -> Option<Asset> {
     use Asset::*;
     if let Some(name) = path.file_stem() {
+        let ext = path.extension()?.to_str()?;
         // filter highpoly
-        if name.to_str()?.starts_with("HP") {
+        if name.to_str()?.starts_with("HP") && (ext != "blend" || ext != "blend1"){
             return Some(HighPoly)
         }
     }
     // Krita ends autosaved files with ~
     if path.extension()?.to_str()?.ends_with("~") {
-        return Some(Texture(TextureData::default()))
+        return Some(Texture(TextureData::from_pathbuf(path)))
     }
     for component in path.components() {
         let comp = component.as_os_str().to_str().unwrap().to_ascii_lowercase();
@@ -40,7 +43,7 @@ pub fn get_filetype(path: &PathBuf) -> Option<Asset> {
     // match extension
     let filetype = if let Some(ext) = path.extension() {
         match ext.to_str()? {
-            "blend" | "blend1" => Blender,
+            "blend" | "blend1" => Blender(BlenderData::from_pathbuf(path)),
             "sbs" => SubstanceDesigner,
             // improve
             "fbx" => {

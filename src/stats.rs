@@ -58,4 +58,32 @@ impl Stats {
 
         Ok(())
     }
+
+    pub fn insert(&mut self, mut a: Asset, a_size: u64) {
+        use texture::TextureType;
+
+        if let Asset::Texture(tex_data) = &mut a {
+            let new_type = match tex_data.tex_type {
+                TextureType::Bake(_) => TextureType::Bake(texture::BakeType::Normal),
+                TextureType::Special => TextureType::Special,
+                _ => TextureType::BaseColor
+            };
+            *tex_data = TextureData{
+                tex_type: new_type,
+                extension: String::from(""),
+                name: String::from(""),
+                full_path: PathBuf::new()
+            };
+        }
+
+        match self.file_types.get_mut(&a) {
+            Some((quantity, size)) => {
+                *quantity += 1;
+                *size += a_size;
+            },
+            None => {self.file_types.insert(a, (1, a_size));}
+        }
+
+        self.total_size += a_size;
+    }
 }

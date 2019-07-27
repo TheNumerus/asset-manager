@@ -16,6 +16,8 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let mut ingonred = 0;
 
+    let mut assets = Vec::new();
+
     for file in &files {
         let file_type = get_filetype(&file);
         let file_size = file.metadata()?.len();
@@ -26,24 +28,22 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
 
         let file_type = file_type.unwrap();
+        assets.push(file_type.clone());
 
         if let Asset::Other = file_type {
             println!("{:?}", file);
         }
 
-        match stats.file_types.get_mut(&file_type) {
-            Some((quantity, size)) => {
-                *quantity += 1;
-                *size += file_size;
-            },
-            None => {stats.file_types.insert(file_type, (1, file_size));}
-        }
-        stats.total_size += file_size;
+        stats.insert(file_type, file_size);
     }
     println!("Ignoring {} files.", ingonred);
     stats.total_files = files.len() - ingonred;
 
     stats.print_table();
+
+    for file in &assets {
+        dbg!(file);
+    }
 
     println!("Want to clean up autosaved files?");
     match get_choice() {
