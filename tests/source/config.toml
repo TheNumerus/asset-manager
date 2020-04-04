@@ -1,1 +1,6 @@
- 
+ [fbx]
+ target = "../destination/models"
+ ignore = ["ignore"]
+
+ [png]
+ target = "../destination/textures"
