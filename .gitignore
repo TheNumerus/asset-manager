@@ -4,3 +4,7 @@
 .directory
 
 .idea/
+
+copydog-qt/lib/libcopydog.a
+
+.qmake.stash

@@ -79,3 +79,9 @@ fn normalize_path(path: &Path) -> PathBuf {
     }
     ret
 }
+
+#[no_mangle]
+pub extern fn test() -> i32 {
+    println!("TEST DO PICIII");
+    5
+}
