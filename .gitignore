@@ -8,3 +8,4 @@
 copydog-qt/lib/libcopydog.a
 
 .qmake.stash
+/copydog-qt/build/
