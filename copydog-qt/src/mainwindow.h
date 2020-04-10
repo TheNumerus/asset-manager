@@ -16,9 +16,11 @@ public:
   ~MainWindow();
 
 private slots:
-  void on_openButton_clicked();
-
+    void on_openButton_clicked();
+    void on_sourceButton_clicked();
+    void on_watchButton_clicked();
 private:
-  Ui::MainWindow *ui;
+    Ui::MainWindow *ui;
+    bool watching;
 };
 #endif // MAINWINDOW_H

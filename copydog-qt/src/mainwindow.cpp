@@ -10,6 +10,7 @@
 
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
+    watching = false;
 }
 
 MainWindow::~MainWindow() {
@@ -50,4 +51,23 @@ void MainWindow::on_openButton_clicked() {
 
     auto new_name = "Copydog <" + filename + ">";
     setWindowTitle(new_name);
+}
+
+void MainWindow::on_sourceButton_clicked() {
+    QString path = QFileDialog::getExistingDirectory(this, tr("Open Source Folder"), QDir::homePath());
+    if (path == nullptr) {
+        return;
+    }
+    ui->sourceLineEdit->setText(path);
+}
+
+void MainWindow::on_watchButton_clicked() {
+    if (watching) {
+        ui->watchButton->setText("Watch");
+        ui->watchButton->setIcon(QIcon::fromTheme("media-playback-start"));
+    } else {
+        ui->watchButton->setText("Stop");
+        ui->watchButton->setIcon(QIcon::fromTheme("media-playback-stop"));
+    }
+    watching = !watching;
 }
