@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>372</width>
-    <height>426</height>
+    <width>300</width>
+    <height>194</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>300</width>
+    <height>0</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>Copydog</string>
@@ -52,7 +58,7 @@
       <item>
        <widget class="QLabel" name="sourceLabel">
         <property name="text">
-         <string>Source folder</string>
+         <string>Source folder:</string>
         </property>
        </widget>
       </item>
@@ -90,7 +96,6 @@
     </item>
    </layout>
   </widget>
-  <widget class="QStatusBar" name="statusbar"/>
  </widget>
  <resources/>
  <connections/>
