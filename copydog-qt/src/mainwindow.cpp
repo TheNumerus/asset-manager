@@ -6,12 +6,16 @@
 #include <QFile>
 #include <QMessageBox>
 
+#include "filetypesetting.h"
 #include "copydog.h"
 
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     watching = false;
     ui->sourceLineEdit->setText(QDir::homePath());
+    // TODO delete
+    ui->extensionList->addWidget(new FiletypeSetting("fbx"));
+    ui->extensionList->addWidget(new FiletypeSetting("png"));
 }
 
 MainWindow::~MainWindow() {

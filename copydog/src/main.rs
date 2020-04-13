@@ -1,9 +1,12 @@
 use std::env;
+use std::path::PathBuf;
+use std::time::Duration;
 
 use anyhow::{Result, Context};
 
-use copydog::{watch, ConfigBuilder};
-use std::path::PathBuf;
+use copydog::{ConfigBuilder};
+use copydog::watch::Watcher;
+
 
 fn main() -> Result<()> {
     let arg = env::args().nth(1).context("Invalid number of arguments.")?;
@@ -14,7 +17,15 @@ fn main() -> Result<()> {
 
     dbg!(&config);
 
-    watch(config);
+    let mut watcher = Watcher::new(&config);
+
+    watcher.start()?;
+    println!("Watch started");
+
+    std::thread::sleep(Duration::from_secs(3));
+
+    watcher.stop()?;
+    println!("Watch stopped");
 
     Ok(())
 }

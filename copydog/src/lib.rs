@@ -22,35 +22,11 @@
 //! let config = ConfigBuilder::new().toml(toml).build();
 //! ```
 use std::path::{PathBuf, Path, Component};
-use std::sync::mpsc::channel;
-use std::time::Duration;
-
-use notify::{Watcher, RecursiveMode, watcher, DebouncedEvent};
 
 pub mod config;
 pub use config::{ConfigBuilder};
 
-use config::Config;
-
-pub fn watch(config: Config) {
-    let (tx, rx) = channel();
-
-    let mut watcher = watcher(tx, Duration::from_secs(5)).unwrap();
-
-    watcher.watch(config.source, RecursiveMode::Recursive).unwrap();
-
-    loop {
-        match rx.recv() {
-            Ok(event) => {
-                match event {
-                    DebouncedEvent::Create(path) => println!("file {:?} created", path),
-                    _ => {}
-                }
-            },
-            Err(_e) => eprintln!("Folder watching ended."),
-        }
-    }
-}
+pub mod watch;
 
 /// Function from Cargo for prettier `PathBuf`
 fn normalize_path(path: &Path) -> PathBuf {
@@ -78,10 +54,4 @@ fn normalize_path(path: &Path) -> PathBuf {
         }
     }
     ret
-}
-
-#[no_mangle]
-pub extern fn test() -> i32 {
-    println!("TEST DO PICIII");
-    5
 }
