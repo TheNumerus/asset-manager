@@ -6,16 +6,16 @@
 #include <QFile>
 #include <QMessageBox>
 
+#include <iostream>
+
 #include "filetypesetting.h"
 #include "copydog.h"
+#include "../../toml11/toml.hpp"
 
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     watching = false;
     ui->sourceLineEdit->setText(QDir::homePath());
-    // TODO delete
-    ui->extensionList->addWidget(new FiletypeSetting("fbx"));
-    ui->extensionList->addWidget(new FiletypeSetting("png"));
 }
 
 MainWindow::~MainWindow() {
@@ -24,6 +24,7 @@ MainWindow::~MainWindow() {
 
 
 void MainWindow::on_openButton_clicked() {
+    // TODO move most of this elsewhere
     auto filename = QFileDialog::getOpenFileName(this, tr("Open Config File"), QDir::homePath(), tr("TOML config file (*.toml)"));
     if (filename == nullptr) {
         return;
@@ -48,10 +49,28 @@ void MainWindow::on_openButton_clicked() {
 
     ui->listWidget->clear();
 
-    QTextStream in(&file);
-    while (!in.atEnd()) {
-        QString line = in.readLine();
-        ui->listWidget->addItem(line);
+    // TODO check validity of config
+    toml::value toml_data = toml::parse(filename.toStdString());
+
+
+    std::string source;
+    try {
+        source = toml::find<std::string>(toml_data, "source");
+    }  catch (std::exception) {
+        QMessageBox box;
+        box.setText("Config file does not have source parameter.");
+        box.exec();
+        return;
+    }
+
+    ui->sourceLineEdit->setText(QString::fromStdString(source));
+
+    toml::table data = toml::get<toml::table>(toml_data);
+    // iterate over data
+    for (std::pair<toml::key, toml::value> value: data) {
+        if (value.first != "source") {
+            ui->extensionList->addWidget(new FiletypeSetting(QString::fromStdString(value.first)));
+        }
     }
 
     auto new_name = "Copydog <" + filename + ">";
