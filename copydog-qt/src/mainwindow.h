@@ -16,9 +16,16 @@ public:
   ~MainWindow();
 
 private slots:
-    void on_openButton_clicked();
     void on_sourceButton_clicked();
     void on_watchButton_clicked();
+    void on_actionOpen_triggered();
+
+    void on_actionSave_triggered();
+
+    void on_actionSave_as_triggered();
+
+    void on_addFiletypeButton_clicked();
+
 private:
     Ui::MainWindow *ui;
     bool watching;

@@ -12,6 +12,13 @@
 #include "copydog.h"
 #include "../../toml11/toml.hpp"
 
+void notYetImplementedBox() {
+    QMessageBox box;
+    box.setText("Not yet implemented.");
+    box.setIcon(QMessageBox::Icon::Warning);
+    box.exec();
+}
+
 MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
     watching = false;
@@ -22,9 +29,28 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
+void MainWindow::on_sourceButton_clicked() {
+    QString path = QFileDialog::getExistingDirectory(this, tr("Open Source Folder"), QDir::homePath());
+    if (path == nullptr) {
+        return;
+    }
+    ui->sourceLineEdit->setText(path);
+}
 
-void MainWindow::on_openButton_clicked() {
-    // TODO move most of this elsewhere
+void MainWindow::on_watchButton_clicked() {
+    if (watching) {
+        ui->logList->addItem("Watch stopped");
+        ui->watchButton->setText("Watch");
+        ui->watchButton->setIcon(QIcon::fromTheme("media-playback-start"));
+    } else {
+        ui->logList->addItem("Watch started");
+        ui->watchButton->setText("Stop");
+        ui->watchButton->setIcon(QIcon::fromTheme("media-playback-stop"));
+    }
+    watching = !watching;
+}
+
+void MainWindow::on_actionOpen_triggered() {
     auto filename = QFileDialog::getOpenFileName(this, tr("Open Config File"), QDir::homePath(), tr("TOML config file (*.toml)"));
     if (filename == nullptr) {
         return;
@@ -47,7 +73,7 @@ void MainWindow::on_openButton_clicked() {
         return;
     }
 
-    ui->listWidget->clear();
+    ui->logList->clear();
 
     // TODO check validity of config
     toml::value toml_data = toml::parse(filename.toStdString());
@@ -56,12 +82,19 @@ void MainWindow::on_openButton_clicked() {
     std::string source;
     try {
         source = toml::find<std::string>(toml_data, "source");
-    }  catch (std::exception) {
+    }  catch (std::out_of_range&) {
         QMessageBox box;
         box.setText("Config file does not have source parameter.");
         box.exec();
         return;
     }
+
+    //remove old data
+    while (auto item = ui->extensionList->takeAt(0)) {
+        delete item->widget();
+    }
+
+    //fill window with data
 
     ui->sourceLineEdit->setText(QString::fromStdString(source));
 
@@ -69,29 +102,23 @@ void MainWindow::on_openButton_clicked() {
     // iterate over data
     for (std::pair<toml::key, toml::value> value: data) {
         if (value.first != "source") {
-            ui->extensionList->addWidget(new FiletypeSetting(QString::fromStdString(value.first)));
+            auto filetype = new FiletypeSetting(QString::fromStdString(value.first));
+            ui->extensionList->addWidget(filetype);
         }
     }
 
-    auto new_name = "Copydog <" + filename + ">";
+    auto new_name = "Copydog <" + fi.fileName() + ">";
     setWindowTitle(new_name);
 }
 
-void MainWindow::on_sourceButton_clicked() {
-    QString path = QFileDialog::getExistingDirectory(this, tr("Open Source Folder"), QDir::homePath());
-    if (path == nullptr) {
-        return;
-    }
-    ui->sourceLineEdit->setText(path);
+void MainWindow::on_actionSave_triggered() {
+    notYetImplementedBox();
 }
 
-void MainWindow::on_watchButton_clicked() {
-    if (watching) {
-        ui->watchButton->setText("Watch");
-        ui->watchButton->setIcon(QIcon::fromTheme("media-playback-start"));
-    } else {
-        ui->watchButton->setText("Stop");
-        ui->watchButton->setIcon(QIcon::fromTheme("media-playback-stop"));
-    }
-    watching = !watching;
+void MainWindow::on_actionSave_as_triggered() {
+    notYetImplementedBox();
+}
+
+void MainWindow::on_addFiletypeButton_clicked() {
+    notYetImplementedBox();
 }
