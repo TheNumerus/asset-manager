@@ -26,6 +26,10 @@ private slots:
 
     void on_addFiletypeButton_clicked();
 
+    void on_actionAbout_triggered();
+
+    void on_extensionTabs_tabCloseRequested(int index);
+
 private:
     Ui::MainWindow *ui;
     bool watching;

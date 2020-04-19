@@ -13,8 +13,12 @@ class FiletypeSetting : public QWidget
 
 public:
     explicit FiletypeSetting(QWidget *parent = nullptr);
-    FiletypeSetting(QString extension);
+    FiletypeSetting(QWidget *parent, QString extension);
     ~FiletypeSetting();
+
+private slots:
+    void on_extensionText_textEdited(const QString &arg1);
+    void on_pathButton_clicked();
 
 private:
     Ui::FiletypeSetting *ui;

@@ -10,6 +10,8 @@
 
 #include "filetypesetting.h"
 #include "copydog.h"
+#include "aboutwindow.h"
+
 #include "../../toml11/toml.hpp"
 
 void notYetImplementedBox() {
@@ -90,20 +92,18 @@ void MainWindow::on_actionOpen_triggered() {
     }
 
     //remove old data
-    while (auto item = ui->extensionList->takeAt(0)) {
-        delete item->widget();
-    }
+    ui->extensionTabs->clear();
 
     //fill window with data
-
     ui->sourceLineEdit->setText(QString::fromStdString(source));
 
     toml::table data = toml::get<toml::table>(toml_data);
     // iterate over data
     for (std::pair<toml::key, toml::value> value: data) {
         if (value.first != "source") {
-            auto filetype = new FiletypeSetting(QString::fromStdString(value.first));
-            ui->extensionList->addWidget(filetype);
+            auto extension = QString::fromStdString(value.first);
+            auto filetype = new FiletypeSetting(ui->extensionTabs, extension);
+            ui->extensionTabs->addTab(filetype, extension);
         }
     }
 
@@ -120,5 +120,16 @@ void MainWindow::on_actionSave_as_triggered() {
 }
 
 void MainWindow::on_addFiletypeButton_clicked() {
-    notYetImplementedBox();
+    auto filetype = new FiletypeSetting(ui->extensionTabs, "ext");
+    auto index = ui->extensionTabs->addTab(filetype, "ext");
+    ui->extensionTabs->setCurrentIndex(index);
+}
+
+void MainWindow::on_actionAbout_triggered() {
+    AboutWindow *aw = new AboutWindow(this);
+    aw->show();
+}
+
+void MainWindow::on_extensionTabs_tabCloseRequested(int index) {
+    ui->extensionTabs->removeTab(index);
 }

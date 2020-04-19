@@ -1,4 +1,4 @@
-QT       += core gui
+QT       += core gui svg
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -16,16 +16,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    aboutwindow.cpp \
     filetypesetting.cpp \
     main.cpp \
     mainwindow.cpp
 
 HEADERS += \
+    aboutwindow.h \
     copydog.h \
     filetypesetting.h \
-    mainwindow.h
+    mainwindow.h \
+    versions.h
 
 FORMS += \
+    aboutwindow.ui \
     filetypesetting.ui \
     mainwindow.ui
 
@@ -43,3 +47,6 @@ DEPENDPATH += $$PWD/.
 
 win32:!win32-g++: PRE_TARGETDEPS += $$PWD/../lib/copydog.lib
 else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/../lib/libcopydog.a
+
+RESOURCES += \
+    resources.qrc
