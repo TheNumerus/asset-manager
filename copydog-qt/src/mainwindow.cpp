@@ -5,6 +5,7 @@
 #include <QDir>
 #include <QFile>
 #include <QMessageBox>
+#include <QCloseEvent>
 
 #include <iostream>
 
@@ -132,4 +133,19 @@ void MainWindow::on_actionAbout_triggered() {
 
 void MainWindow::on_extensionTabs_tabCloseRequested(int index) {
     ui->extensionTabs->removeTab(index);
+}
+
+void MainWindow::closeEvent(QCloseEvent *event) {
+    // TODO check for unsaved changes
+    if (watching) {
+        QMessageBox box;
+        box.setText("Are you sure you want to close? Watching is still in progress.");
+        box.setIcon(QMessageBox::Icon::Warning);
+        box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        box.setDefaultButton(QMessageBox::Cancel);
+        auto result = box.exec();
+        if (result == QMessageBox::Cancel) {
+            event->ignore();
+        }
+    }
 }
