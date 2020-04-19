@@ -34,5 +34,7 @@ private slots:
 private:
     Ui::MainWindow *ui;
     bool watching;
+
+    std::string generate_toml();
 };
 #endif // MAINWINDOW_H

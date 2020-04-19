@@ -14,6 +14,12 @@ class FiletypeSetting : public QWidget
 public:
     explicit FiletypeSetting(QWidget *parent = nullptr);
     FiletypeSetting(QWidget *parent, QString extension);
+
+    QString get_extension() const;
+
+    void set_target_path(const QString &);
+    QString get_target_path() const;
+
     ~FiletypeSetting();
 
 private slots:

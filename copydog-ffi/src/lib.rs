@@ -1,5 +1,8 @@
 use std::ffi::CString;
+use std::ffi::CStr;
 use std::os::raw::c_char;
+
+use copydog::ConfigBuilder;
 
 #[no_mangle]
 pub extern fn test() -> i32 {
@@ -12,5 +15,14 @@ pub extern fn test_str() -> *const c_char {
     let ptr = cstr.as_ptr();
     std::mem::forget(cstr);
     ptr
+}
+
+#[no_mangle]
+pub extern fn print_input(input: *const c_char) {
+    unsafe {
+        let input = CStr::from_ptr(input).to_str().unwrap();
+        let config = ConfigBuilder::new().toml(input).build();
+        println!("{:?}", config);
+    }
 }
 

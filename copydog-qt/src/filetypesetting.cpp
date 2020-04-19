@@ -17,6 +17,18 @@ FiletypeSetting::FiletypeSetting(QWidget *parent, QString extension) : QWidget(p
     ui->extensionText->setText(extension);
 }
 
+QString FiletypeSetting::get_extension() const {
+    return ui->extensionText->text();
+}
+
+void FiletypeSetting::set_target_path(const QString &path) {
+    ui->pathText->setText(path);
+}
+
+QString FiletypeSetting::get_target_path() const {
+    return ui->pathText->text();
+}
+
 FiletypeSetting::~FiletypeSetting() {
     delete ui;
 }

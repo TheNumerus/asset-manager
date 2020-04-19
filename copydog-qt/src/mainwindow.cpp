@@ -49,6 +49,7 @@ void MainWindow::on_watchButton_clicked() {
         ui->logList->addItem("Watch started");
         ui->watchButton->setText("Stop");
         ui->watchButton->setIcon(QIcon::fromTheme("media-playback-stop"));
+        qDebug() << QString::fromStdString(generate_toml());
     }
     watching = !watching;
 }
@@ -103,7 +104,9 @@ void MainWindow::on_actionOpen_triggered() {
     for (std::pair<toml::key, toml::value> value: data) {
         if (value.first != "source") {
             auto extension = QString::fromStdString(value.first);
+            auto target = toml::find<std::string>(value.second, "target");
             auto filetype = new FiletypeSetting(ui->extensionTabs, extension);
+            filetype->set_target_path(QString::fromStdString(target));
             ui->extensionTabs->addTab(filetype, extension);
         }
     }
@@ -133,6 +136,24 @@ void MainWindow::on_actionAbout_triggered() {
 
 void MainWindow::on_extensionTabs_tabCloseRequested(int index) {
     ui->extensionTabs->removeTab(index);
+}
+
+std::string MainWindow::generate_toml() {
+    // add source line
+    toml::value data{{"source", ui->sourceLineEdit->text().toStdString()}};
+
+    for (FiletypeSetting* fs: ui->extensionTabs->findChildren<FiletypeSetting*>()) {
+        toml::value v{{"target",
+            fs->get_target_path().toStdString()
+        }};
+
+        data.as_table().insert(std::pair<std::string, toml::value>(fs->get_extension().toStdString(), v));
+    }
+
+    std::string s = toml::format(data);
+
+    copydog::print_input(s.data());
+    return s;
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {

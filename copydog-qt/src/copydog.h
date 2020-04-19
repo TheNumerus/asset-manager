@@ -12,6 +12,8 @@ namespace copydog {
 
 extern "C" {
 
+void print_input(const char *input);
+
 int32_t test();
 
 const char *test_str();
