@@ -7,14 +7,17 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QSettings>
+#include <QMimeData>
 
 #include <iostream>
 
 #include "filetypesetting.h"
-#include "copydog.h"
 #include "aboutwindow.h"
+#include "config.h"
 
 #include "../../toml11/toml.hpp"
+
+using namespace copydog;
 
 void notYetImplementedBox() {
     QMessageBox box;
@@ -27,6 +30,7 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     ui->setupUi(this);
     watching = false;
     ui->sourceLineEdit->setText(QDir::homePath());
+    c = nullptr;
 }
 
 MainWindow::~MainWindow() {
@@ -36,6 +40,7 @@ MainWindow::~MainWindow() {
     qs.setValue("size", QVariant(size()));
     qs.sync();
 
+    delete c;
     delete ui;
 }
 
@@ -49,14 +54,24 @@ void MainWindow::on_sourceButton_clicked() {
 
 void MainWindow::on_watchButton_clicked() {
     if (watching) {
+        ui->parameters->setEnabled(true);
         ui->logList->addItem("Watch stopped");
         ui->watchButton->setText("Watch");
         ui->watchButton->setIcon(QIcon::fromTheme("media-playback-start"));
     } else {
+        try {
+            c = new Config(generate_toml().c_str());
+        } catch (...) {
+            QMessageBox box;
+            box.setText("Cannot start watching. Inavlid configuration.");
+            box.setIcon(QMessageBox::Icon::Critical);
+            box.exec();
+            return;
+        }
+        ui->parameters->setEnabled(false);
         ui->logList->addItem("Watch started");
         ui->watchButton->setText("Stop");
         ui->watchButton->setIcon(QIcon::fromTheme("media-playback-stop"));
-        qDebug() << QString::fromStdString(generate_toml());
     }
     watching = !watching;
 }
@@ -67,59 +82,7 @@ void MainWindow::on_actionOpen_triggered() {
         return;
     }
 
-    // check for valid format
-    QFileInfo fi(filename);
-    if (fi.completeSuffix() != "toml") {
-        QMessageBox box;
-        box.setText("Config must be a TOML file.");
-        box.exec();
-        return;
-    }
-
-    QFile file(filename);
-    if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
-        QMessageBox box;
-        box.setText("Error while opening config file.");
-        box.exec();
-        return;
-    }
-
-    ui->logList->clear();
-
-    // TODO check validity of config
-    toml::value toml_data = toml::parse(filename.toStdString());
-
-
-    std::string source;
-    try {
-        source = toml::find<std::string>(toml_data, "source");
-    }  catch (std::out_of_range&) {
-        QMessageBox box;
-        box.setText("Config file does not have source parameter.");
-        box.exec();
-        return;
-    }
-
-    //remove old data
-    ui->extensionTabs->clear();
-
-    //fill window with data
-    ui->sourceLineEdit->setText(QString::fromStdString(source));
-
-    toml::table data = toml::get<toml::table>(toml_data);
-    // iterate over data
-    for (std::pair<toml::key, toml::value> value: data) {
-        if (value.first != "source") {
-            auto extension = QString::fromStdString(value.first);
-            auto target = toml::find<std::string>(value.second, "target");
-            auto filetype = new FiletypeSetting(ui->extensionTabs, extension);
-            filetype->set_target_path(QString::fromStdString(target));
-            ui->extensionTabs->addTab(filetype, extension);
-        }
-    }
-
-    auto new_name = "Copydog <" + fi.fileName() + ">";
-    setWindowTitle(new_name);
+    openFile(filename);
 }
 
 void MainWindow::on_actionSave_triggered() {
@@ -158,9 +121,75 @@ std::string MainWindow::generate_toml() {
     }
 
     std::string s = toml::format(data);
-
-    copydog::print_input(s.data());
     return s;
+}
+
+void MainWindow::openFile(QString filename) {
+    // check for valid format
+    QFileInfo fi(filename);
+    if (fi.completeSuffix() != "toml") {
+        QMessageBox box;
+        box.setText("Config must be a TOML file.");
+        box.exec();
+        return;
+    }
+
+    QFile file(filename);
+    if (!file.open(QIODevice::ReadWrite | QIODevice::Text)) {
+        QMessageBox box;
+        box.setText("Error while opening config file.");
+        box.exec();
+        return;
+    }
+
+    ui->logList->clear();
+
+    // TODO check validity of config
+    toml::value toml_data = toml::parse(filename.toStdString());
+
+
+    std::string source;
+    try {
+        source = toml::find<std::string>(toml_data, "source");
+    }  catch (std::out_of_range&) {
+        QMessageBox box;
+        box.setText("Config file does not have source parameter.");
+        box.exec();
+        return;
+    }
+
+    //remove old data
+    ui->extensionTabs->clear();
+
+    //fill window with data
+    auto sourcePath = QString::fromStdString(source);
+    QDir dir(sourcePath);
+    if (dir.isAbsolute()) {
+        ui->sourceLineEdit->setText(sourcePath);
+    } else {
+        auto configParent = QDir(filename);
+        configParent.cdUp();
+        dir = QDir(configParent.path() + QDir::separator() + dir.path());
+        dir.makeAbsolute();
+        ui->sourceLineEdit->setText(dir.path());
+    }
+
+
+
+    toml::table data = toml::get<toml::table>(toml_data);
+    // iterate over data
+    for (std::pair<toml::key, toml::value> value: data) {
+        if (value.first != "source") {
+            auto extension = QString::fromStdString(value.first);
+            auto target = toml::find<std::string>(value.second, "target");
+            auto filetype = new FiletypeSetting(ui->extensionTabs, extension);
+            filetype->set_target_path(QString::fromStdString(target));
+            ui->extensionTabs->addTab(filetype, extension);
+        }
+    }
+
+    auto new_name = "Copydog <" + fi.fileName() + ">";
+    setWindowTitle(new_name);
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
@@ -175,5 +204,17 @@ void MainWindow::closeEvent(QCloseEvent *event) {
         if (result == QMessageBox::Cancel) {
             event->ignore();
         }
+    }
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event) {
+    if (event->mimeData()->hasFormat("text/plain") && !watching) {
+        event->acceptProposedAction();
+    }
+}
+
+void MainWindow::dropEvent(QDropEvent *event) {
+    if (event->mimeData()->hasUrls()) {
+        openFile(event->mimeData()->urls()[0].toLocalFile());
     }
 }

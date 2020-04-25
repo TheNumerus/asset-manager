@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "config.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -14,6 +15,8 @@ class MainWindow : public QMainWindow
 public:
   MainWindow(QWidget *parent = nullptr);
   void closeEvent(QCloseEvent* event) override;
+  void dragEnterEvent(QDragEnterEvent* event) override;
+  void dropEvent(QDropEvent* event) override;
   ~MainWindow();
 
 private slots:
@@ -36,5 +39,7 @@ private:
     bool watching;
 
     std::string generate_toml();
+    void openFile(QString filename);
+    copydog::Config *c;
 };
 #endif // MAINWINDOW_H

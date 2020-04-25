@@ -23,6 +23,7 @@ SOURCES += \
 
 HEADERS += \
     aboutwindow.h \
+    config.h \
     copydog.h \
     filetypesetting.h \
     mainwindow.h \

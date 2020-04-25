@@ -11,3 +11,7 @@ copydog-qt/lib/libcopydog.a
 /copydog-qt/build/
 
 *.user
+
+copydog-qt/src/copydog.h
+
+copydog-ffi/copydog.h

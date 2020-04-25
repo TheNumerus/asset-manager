@@ -16,7 +16,7 @@ fn main() -> Result<()> {
 
     dbg!(&config);
 
-    let mut watcher = Watcher::new(&config);
+    let mut watcher = Watcher::new(config);
 
     watcher.start()?;
     println!("Watch started");
