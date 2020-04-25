@@ -18,11 +18,9 @@ pub extern fn test_str() -> *const c_char {
 }
 
 #[no_mangle]
-pub extern fn print_input(input: *const c_char) {
-    unsafe {
-        let input = CStr::from_ptr(input).to_str().unwrap();
-        let config = ConfigBuilder::new().toml(input).build();
-        println!("{:?}", config);
-    }
+pub unsafe extern fn print_input(input: *const c_char) {
+    let input = CStr::from_ptr(input).to_str().unwrap();
+    let config = ConfigBuilder::new().toml(input).build();
+    println!("{:?}", config);
 }
 

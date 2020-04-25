@@ -6,6 +6,7 @@
 #include <QFile>
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QSettings>
 
 #include <iostream>
 
@@ -29,6 +30,12 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
 }
 
 MainWindow::~MainWindow() {
+    // save window position
+    QSettings qs;
+    qs.setValue("pos", QVariant(pos()));
+    qs.setValue("size", QVariant(size()));
+    qs.sync();
+
     delete ui;
 }
 

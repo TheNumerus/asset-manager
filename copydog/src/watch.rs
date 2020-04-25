@@ -42,10 +42,15 @@ impl Watcher {
         let rx = Arc::clone(&self.rx);
         self.handle = Some(thread::spawn(move || {
             loop {
+                use DebouncedEvent::*;
                 match rx.lock().unwrap().recv() {
                     Ok(event) => {
                         match event {
-                            DebouncedEvent::Create(path) => println!("file {:?} created", path),
+                            Create(path) | Write(path) => {
+
+                                println!("file {:?} created", path)
+                            },
+                            // ignore other events
                             _ => {}
                         }
                     },

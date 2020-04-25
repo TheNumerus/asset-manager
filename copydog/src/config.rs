@@ -1,9 +1,9 @@
 //! Configuration structures
+use std::collections::HashMap;
 use std::path::{PathBuf, Path};
 use std::fs;
 
 use thiserror::Error;
-
 use toml::Value;
 
 /// A structure used for saving configuration info
@@ -12,29 +12,7 @@ pub struct Config {
     /// Root watching folder
     pub source: PathBuf,
     /// File type configurations
-    pub filetypes: Vec<FileType>,
-}
-
-impl Config {
-    fn check_target_folders(&self) -> Result<(), ConfigError> {
-        for filetype in &self.filetypes {
-            // normalize path
-            let folder_path = self.source.join(&filetype.target);
-
-            // check target folder
-            if !folder_path.is_dir() {
-                // try to create
-                match fs::create_dir(&folder_path) {
-                    Ok(_) => eprintln!("Creating folder {:?}", folder_path),
-                    Err(e) => {
-                        let message = format!("Unable to create target folder for {}", filetype.extension);
-                        return Err(ConfigError::FileError{message, source: e});
-                    }
-                }
-            }
-        }
-        Ok(())
-    }
+    pub filetypes: HashMap<String, FileType>,
 }
 
 /// Used for building `Config` from toml format
@@ -68,10 +46,13 @@ impl ConfigBuilder {
     }
 
     /// Finishes creation of `Config`.
+    ///
+    /// Will create non-existent folders if needed.
+    /// If there are multiple settings per extension, the setting further in the input will be used
     pub fn build(&self) -> Result<Config, ConfigError> {
         let toml = toml::from_str::<Value>(&self.toml.as_ref().unwrap_or(&String::from("source = \".\"")))?;
 
-        let mut filetypes = Vec::new();
+        let mut filetypes = HashMap::new();
 
         if let Value::Table(table) = toml {
             let source = table.get("source");
@@ -100,12 +81,13 @@ impl ConfigBuilder {
                     continue;
                 }
                 let filetype = Self::toml_to_filetype(extension, params)?;
-                filetypes.push(filetype);
+
+                filetypes.insert(extension.clone(), filetype);
             }
 
-            let config = Config{source, filetypes};
+            Self::check_folders(&source, &mut filetypes)?;
 
-            //config.check_target_folders()?;
+            let config = Config{source, filetypes};
 
             Ok(config)
         } else {
@@ -152,11 +134,31 @@ impl ConfigBuilder {
         };
 
         let c = FileType {
-            extension: extension.to_string(),
             target,
             ignore
         };
         Ok(c)
+    }
+
+    fn check_folders(source: &PathBuf, filetypes: &mut HashMap<String, FileType>) -> Result<(), ConfigError> {
+        for filetype in filetypes.values_mut() {
+            let target_path = source.join(&filetype.target);
+            if !target_path.exists() {
+                fs::create_dir(&target_path)?;
+            }
+            filetype.target = target_path.canonicalize()?;
+
+            if let Some(ignored_paths) = &mut filetype.ignore {
+                for ignore in ignored_paths {
+                    let ignore_path = source.join(&ignore);
+                    if !ignore_path.exists() {
+                        fs::create_dir(&ignore_path)?;
+                    }
+                    *ignore = ignore_path.canonicalize()?;
+                }
+            }
+        }
+        Ok(())
     }
 }
 
@@ -168,7 +170,6 @@ impl Default for ConfigBuilder {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FileType {
-    pub extension: String,
     pub target: PathBuf,
     pub ignore: Option<Vec<PathBuf>>,
 }
@@ -195,6 +196,15 @@ pub enum ConfigError {
 impl From<toml::de::Error> for ConfigError {
     fn from(source: toml::de::Error) -> Self {
         ConfigError::ParseError {
+            source
+        }
+    }
+}
+
+impl From<std::io::Error> for ConfigError {
+    fn from(source: std::io::Error) -> Self {
+        ConfigError::FileError {
+            message: String::from("File error"),
             source
         }
     }

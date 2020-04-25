@@ -1,6 +1,5 @@
 use std::env;
 use std::path::PathBuf;
-use std::time::Duration;
 
 use anyhow::{Result, Context};
 
@@ -21,8 +20,9 @@ fn main() -> Result<()> {
 
     watcher.start()?;
     println!("Watch started");
+    println!("Press any key to stop");
 
-    std::thread::sleep(Duration::from_secs(3));
+    std::io::stdin().read_line(&mut String::new())?;
 
     watcher.stop()?;
     println!("Watch stopped");
