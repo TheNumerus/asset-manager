@@ -60,6 +60,9 @@ void MainWindow::on_watchButton_clicked() {
         ui->watchButton->setIcon(QIcon::fromTheme("media-playback-start"));
     } else {
         try {
+            if (c != nullptr) {
+                delete c;
+            }
             c = new Config(generate_toml().c_str());
         } catch (...) {
             QMessageBox box;
