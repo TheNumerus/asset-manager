@@ -20,6 +20,8 @@ public:
     void set_target_path(const QString &);
     QString get_target_path() const;
 
+    void add_ignore_folder(const QString &);
+
     ~FiletypeSetting();
 
 private slots:

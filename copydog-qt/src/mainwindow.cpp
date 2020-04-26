@@ -208,6 +208,14 @@ void MainWindow::openFile(QString filename) {
             auto filetype = new FiletypeSetting(ui->extensionTabs, extension);
             filetype->set_target_path(QString::fromStdString(target));
             ui->extensionTabs->addTab(filetype, extension);
+
+            // add ignored forders
+            if (value.second.contains("ignore")){
+                auto ignore = toml::find<std::vector<std::string>>(value.second, "ignore");
+                for (auto ign_folder: ignore) {
+                    filetype->add_ignore_folder(QString::fromStdString(ign_folder));
+                }
+            }
         }
     }
 

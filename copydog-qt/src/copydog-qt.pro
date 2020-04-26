@@ -18,6 +18,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
     aboutwindow.cpp \
     filetypesetting.cpp \
+    ignorefolderitem.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -26,6 +27,7 @@ HEADERS += \
     config.h \
     copydog.h \
     filetypesetting.h \
+    ignorefolderitem.h \
     mainwindow.h \
     versions.h \
     watcher.h
@@ -33,6 +35,7 @@ HEADERS += \
 FORMS += \
     aboutwindow.ui \
     filetypesetting.ui \
+    ignorefolderitem.ui \
     mainwindow.ui
 
 LIBS += -ldl

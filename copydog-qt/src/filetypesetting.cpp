@@ -1,5 +1,6 @@
 #include "filetypesetting.h"
 #include "ui_filetypesetting.h"
+#include "ignorefolderitem.h"
 
 #include <QTabWidget>
 #include <QDir>
@@ -27,6 +28,11 @@ void FiletypeSetting::set_target_path(const QString &path) {
 
 QString FiletypeSetting::get_target_path() const {
     return ui->pathText->text();
+}
+
+void FiletypeSetting::add_ignore_folder(const QString & folder) {
+    auto item = new IgnoreFolderItem(ui->ignoredFoldersWidget, folder);
+    ui->ignoredFoldersWidget->layout()->addWidget(item);
 }
 
 FiletypeSetting::~FiletypeSetting() {

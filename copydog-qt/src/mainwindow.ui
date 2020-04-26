@@ -111,14 +111,16 @@
      </widget>
     </item>
     <item>
-     <widget class="QLabel" name="label">
-      <property name="text">
+     <widget class="QGroupBox" name="verticalGroupBox">
+      <property name="title">
        <string>Watch Log</string>
       </property>
+      <layout class="QVBoxLayout" name="verticalLayout_6">
+       <item>
+        <widget class="QListWidget" name="logList"/>
+       </item>
+      </layout>
      </widget>
-    </item>
-    <item>
-     <widget class="QListWidget" name="logList"/>
     </item>
     <item>
      <widget class="QPushButton" name="watchButton">
