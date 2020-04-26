@@ -13,6 +13,10 @@ namespace copydog {
         }
         ~Config() {
             config_free(c);
+            c = nullptr;
+        }
+        ConfigFfi* get_inner() const {
+            return c;
         }
     private:
         ConfigFfi *c;

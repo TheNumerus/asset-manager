@@ -14,6 +14,7 @@
 #include "filetypesetting.h"
 #include "aboutwindow.h"
 #include "config.h"
+#include "watcher.h"
 
 #include "../../toml11/toml.hpp"
 
@@ -31,6 +32,7 @@ MainWindow::MainWindow(QWidget *parent): QMainWindow(parent), ui(new Ui::MainWin
     watching = false;
     ui->sourceLineEdit->setText(QDir::homePath());
     c = nullptr;
+    w = nullptr;
 }
 
 MainWindow::~MainWindow() {
@@ -39,8 +41,14 @@ MainWindow::~MainWindow() {
     qs.setValue("pos", QVariant(pos()));
     qs.setValue("size", QVariant(size()));
     qs.sync();
-
-    delete c;
+    if (c != nullptr) {
+        delete c;
+        c = nullptr;
+    }
+    if (w != nullptr) {
+        delete w;
+        w = nullptr;
+    }
     delete ui;
 }
 
@@ -54,6 +62,11 @@ void MainWindow::on_sourceButton_clicked() {
 
 void MainWindow::on_watchButton_clicked() {
     if (watching) {
+        w->stop();
+        delete c;
+        c = nullptr;
+        delete w;
+        w = nullptr;
         ui->parameters->setEnabled(true);
         ui->logList->addItem("Watch stopped");
         ui->watchButton->setText("Watch");
@@ -64,13 +77,20 @@ void MainWindow::on_watchButton_clicked() {
                 delete c;
             }
             c = new Config(generate_toml().c_str());
+            if (w != nullptr) {
+                delete w;
+            }
+            w = new Watcher(*c);
         } catch (...) {
             QMessageBox box;
-            box.setText("Cannot start watching. Inavlid configuration.");
+            box.setText("Cannot start watching. Invalid configuration.");
             box.setIcon(QMessageBox::Icon::Critical);
             box.exec();
             return;
         }
+        // TODO CHECK
+        w->start();
+
         ui->parameters->setEnabled(false);
         ui->logList->addItem("Watch started");
         ui->watchButton->setText("Stop");

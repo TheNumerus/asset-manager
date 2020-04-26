@@ -1,5 +1,5 @@
 [package]
-name = "copydog-ffi"
+name = "copydogffi"
 version = "0.1.0"
 authors = ["Petr Volf <petr.volf216@gmail.com>"]
 edition = "2018"
@@ -15,4 +15,6 @@ cbindgen = "0.14.0"
 
 [lib]
 crate-type = ["staticlib"]
-name = "copydog"
+
+[profile.release]
+debug = true

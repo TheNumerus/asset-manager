@@ -27,7 +27,8 @@ HEADERS += \
     copydog.h \
     filetypesetting.h \
     mainwindow.h \
-    versions.h
+    versions.h \
+    watcher.h
 
 FORMS += \
     aboutwindow.ui \
@@ -41,13 +42,13 @@ qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
-unix|win32: LIBS += -L$$PWD/../lib/ -lcopydog
+unix|win32: LIBS += -L$$PWD/../lib/ -lcopydogffi
 
 INCLUDEPATH += $$PWD/.
 DEPENDPATH += $$PWD/.
 
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/../lib/copydog.lib
-else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/../lib/libcopydog.a
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/../lib/copydogffi.lib
+else:unix|win32-g++: PRE_TARGETDEPS += $$PWD/../lib/libcopydogffi.a
 
 RESOURCES += \
     resources.qrc

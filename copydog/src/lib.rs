@@ -1,3 +1,4 @@
+#![warn(missing_debug_implementations)]
 //! # Copydog
 //! Crate for automatic copying files between folders.
 //! ## Usage

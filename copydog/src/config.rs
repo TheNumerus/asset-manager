@@ -18,6 +18,7 @@ pub struct Config {
 /// Used for building `Config` from toml format
 ///
 /// `Config` can be also build manually, this serves as a convenience method for creation
+#[derive(Clone, Debug)]
 pub struct ConfigBuilder {
     working_directory: Option<PathBuf>,
     toml: Option<String>

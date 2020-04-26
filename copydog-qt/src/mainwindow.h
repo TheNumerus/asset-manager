@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "config.h"
+#include "watcher.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -41,5 +42,6 @@ private:
     std::string generate_toml();
     void openFile(QString filename);
     copydog::Config *c;
+    copydog::Watcher *w;
 };
 #endif // MAINWINDOW_H

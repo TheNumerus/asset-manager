@@ -1,36 +1,21 @@
-use std::thread;
-use std::thread::JoinHandle;
-use std::sync::{Arc, Mutex};
-use std::sync::mpsc::{channel, Receiver};
-use std::time::Duration;
-use std::path::PathBuf;
 use std::fs;
 
-use notify::{RecommendedWatcher, watcher, DebouncedEvent, Watcher as _, RecursiveMode};
+use notify::{RecommendedWatcher, immediate_watcher, Watcher as _, RecursiveMode, EventKind};
 use thiserror::Error;
 
 use crate::config::Config;
+use std::fmt::{Debug, Formatter};
 
 pub struct Watcher{
-    watcher: RecommendedWatcher,
-    handle: Option<JoinHandle<Result<(), WatchError>>>,
-    rx: Arc<Mutex<Receiver<DebouncedEvent>>>,
+    watcher: Option<RecommendedWatcher>,
     config: Config,
 }
 
 impl Watcher {
     /// Creates new watcher
     pub fn new(config: Config) -> Self {
-        let (tx, rx) = channel();
-
-        let rx = Arc::new(Mutex::new(rx));
-
-        let watcher = watcher(tx, Duration::from_secs(5)).unwrap();
-
         Watcher {
-            watcher,
-            handle: None,
-            rx,
+            watcher: None,
             config,
         }
     }
@@ -39,26 +24,18 @@ impl Watcher {
     ///
     /// Only watches nothing for now
     pub fn start(&mut self) -> Result<(), WatchError>{
-        self.watcher.watch(&self.config.source, RecursiveMode::Recursive)?;
-        let rx = Arc::clone(&self.rx);
         let config = self.config.to_owned();
-        self.handle = Some(thread::spawn(move || {
-            loop {
-                use DebouncedEvent::*;
-                match rx.lock().unwrap().recv() {
-                    Ok(event) => {
-                        match event {
-                            Create(path) | Write(path) => {
-                                handle_file(&path, &config)?;
-                            },
-                            // ignore other events
-                            _ => {}
-                        }
-                    },
-                    Err(_e) => eprintln!("Folder watching ended."),
-                }
+        let mut watcher = immediate_watcher(move |res: Result<notify::Event, notify::Error>| {
+            match res {
+                Ok(event) => {
+                    //TODO handle error
+                    handle_file(event, &config);
+                },
+                Err(_e) => {}
             }
-        }));
+        }).unwrap();
+        watcher.watch(&self.config.source, RecursiveMode::Recursive)?;
+        self.watcher = Some(watcher);
         Ok(())
     }
 
@@ -66,17 +43,23 @@ impl Watcher {
     ///
     /// Will return `Err` if called before `start`
     pub fn stop(&mut self) -> Result<(), WatchError> {
-        match &self.handle {
+        match &mut self.watcher {
             Some(_) => {
-                self.watcher.unwatch(&self.config.source)?;
-                let mut empty = None;
-                std::mem::swap(&mut self.handle, &mut empty);
-                // TODO fix this
-                //handle.unwrap().join().unwrap();
+                let mut watcher = self.watcher.take().unwrap();
+                watcher.unwatch(&self.config.source)?;
                 Ok(())
             },
             None => Err(WatchError::NoWatching)
         }
+    }
+}
+
+impl Debug for Watcher {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Watcher")
+            .field("config", &self.config)
+            .field("watcher (is_some)", &self.watcher.is_some())
+            .finish()
     }
 }
 
@@ -108,7 +91,18 @@ impl From<std::io::Error> for WatchError {
     }
 }
 
-fn handle_file(path: &PathBuf, config: &Config) -> Result<(), WatchError> {
+fn handle_file(event: notify::Event, config: &Config) -> Result<(), WatchError> {
+    match event.kind{
+        EventKind::Create(_) | EventKind::Modify(_) => {},
+        _ => return Ok(())
+    }
+
+    if event.paths.len() == 0 {
+        return Ok(());
+    }
+
+    let path = &event.paths[0];
+
     // ignore files with no extension
     if let None = path.extension() {
         return Ok(());
