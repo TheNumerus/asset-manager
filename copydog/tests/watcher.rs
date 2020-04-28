@@ -16,7 +16,7 @@ target = "../destination"
 
 #[test]
 fn parse_test() -> Result<(), ConfigError>{
-    let config = ConfigBuilder::new().toml(CONFIG).working_dir("../copydog").build()?;
+    let config = ConfigBuilder::new().toml(CONFIG).working_dir("../copydog/tests/source").build()?;
     dbg!(config);
     Ok(())
 }

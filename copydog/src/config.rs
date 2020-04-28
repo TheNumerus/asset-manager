@@ -1,6 +1,6 @@
 //! Configuration structures
 use std::collections::HashMap;
-use std::path::{PathBuf, Path};
+use std::path::{PathBuf, Path, Component};
 use std::fs;
 
 use thiserror::Error;
@@ -143,7 +143,18 @@ impl ConfigBuilder {
 
     fn check_folders(source: &PathBuf, filetypes: &mut HashMap<String, FileType>) -> Result<(), ConfigError> {
         for filetype in filetypes.values_mut() {
-            let target_path = source.join(&filetype.target);
+            let target_path = if !filetype.target.is_absolute() {
+                let mut target = source.to_owned();
+                for comp in filetype.target.components() {
+                    target.push(comp);
+                }
+                let target = normalize_path(&target);
+                target
+            } else {
+                filetype.target.to_owned()
+            };
+            
+            dbg!(&target_path);
             if !target_path.exists() {
                 fs::create_dir(&target_path)?;
             }
@@ -209,4 +220,34 @@ impl From<std::io::Error> for ConfigError {
             source
         }
     }
+}
+
+/// Code from cargo
+
+/// https://github.com/rust-lang/cargo/blob/2e4cfc2b7d43328b207879228a2ca7d427d188bb/src/cargo/util/paths.rs#L65-L90
+pub fn normalize_path(path: &Path) -> PathBuf {
+    let mut components = path.components().peekable();
+    let mut ret = if let Some(c @ Component::Prefix(..)) = components.peek().cloned() {
+        components.next();
+        PathBuf::from(c.as_os_str())
+    } else {
+        PathBuf::new()
+    };
+
+    for component in components {
+        match component {
+            Component::Prefix(..) => unreachable!(),
+            Component::RootDir => {
+                ret.push(component.as_os_str());
+            }
+            Component::CurDir => {}
+            Component::ParentDir => {
+                ret.pop();
+            }
+            Component::Normal(c) => {
+                ret.push(c);
+            }
+        }
+    }
+    ret
 }

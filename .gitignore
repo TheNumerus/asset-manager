@@ -17,3 +17,5 @@ copydog-qt/src/copydog.h
 copydog-ffi/copydog.h
 
 copydog-qt/lib/libcopydogffi.a
+copydog-qt/build*
+copydog-qt/lib/copydogffi.lib

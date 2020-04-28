@@ -38,7 +38,8 @@ FORMS += \
     ignorefolderitem.ui \
     mainwindow.ui
 
-LIBS += -ldl
+unix: LIBS += -ldl
+win32: LIBS += -lws2_32 -luserenv -ladvapi32
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
